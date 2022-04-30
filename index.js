@@ -49,6 +49,40 @@ async function run() {
       const inventory = await inventoryCollection.findOne(query);
       res.send(inventory);
     });
+
+    // Update SOLD AND QUANTITY:
+    app.post("/updateQuantity", async (req, res) => {
+      const inventory = req.body;
+      let { quantity, sold, ...rest } = inventory;
+      const newQuantity = parseInt(quantity) - 1;
+      const newSoldQuant = parseInt(sold) + 1;
+
+      quantity = newQuantity;
+      sold = newSoldQuant;
+
+      const updatedInventory = { quantity, sold, ...rest };
+
+      console.log(inventory);
+
+      const query = { _id: ObjectId(inventory._id) };
+
+      const updateDoc = {
+        $set: {
+          quantity: newQuantity,
+          sold: newSoldQuant,
+        },
+      };
+
+      const options = { upsert: true };
+
+      const result = await inventoryCollection.updateOne(
+        query,
+        updateDoc,
+        options
+      );
+
+      res.send([result, updatedInventory]);
+    });
   } finally {
     // await client.close()
   }
