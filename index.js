@@ -3,7 +3,8 @@ const cors = require("cors");
 require("dotenv").config();
 const app = express();
 const port = process.env.PORT || 5000;
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+var jwt = require("jsonwebtoken");
 
 // MiddleWere
 app.use(express.json());
@@ -24,13 +25,32 @@ async function run() {
     // Collection
     const inventoryCollection = client.db("speedo").collection("inventory");
 
+    // // Getting Access Token
+    // app.post("/getToken", (req, res) => {
+    //   const email = req.body;
+    //   const accessToken = jwt.sign(email, process.env.ACCESS_TOKEN_SECRET, {
+    //     expiresIn: "1d",
+    //   });
+    //   res.send(accessToken);
+    // });
+
+    // Getting inventories
     app.get("/inventory", async (req, res) => {
       const query = {};
       const cursor = inventoryCollection.find(query);
       const inventories = await cursor.toArray();
       res.send(inventories);
     });
+
+    // Get Single Inventory using ID
+    app.get("/inventory/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const inventory = await inventoryCollection.findOne(query);
+      res.send(inventory);
+    });
   } finally {
+    // await client.close()
   }
 }
 
