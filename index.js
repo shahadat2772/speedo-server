@@ -50,10 +50,11 @@ async function run() {
       res.send(inventory);
     });
 
-    // Update SOLD AND QUANTITY:
+    // Update SOLD AND QUANTITY RESTOCK:
     app.post("/updateQuantity", async (req, res) => {
       const inventory = req.body;
       let { quantity, sold, ...rest } = inventory;
+
       const newQuantity = parseInt(quantity) - 1;
       const newSoldQuant = parseInt(sold) + 1;
 
@@ -61,20 +62,40 @@ async function run() {
       sold = newSoldQuant;
 
       const updatedInventory = { quantity, sold, ...rest };
-
-      console.log(inventory);
-
       const query = { _id: ObjectId(inventory._id) };
-
       const updateDoc = {
         $set: {
           quantity: newQuantity,
           sold: newSoldQuant,
         },
       };
-
       const options = { upsert: true };
+      const result = await inventoryCollection.updateOne(
+        query,
+        updateDoc,
+        options
+      );
 
+      res.send([result, updatedInventory]);
+    });
+
+    // Restock Items
+    app.post("/restock", async (req, res) => {
+      const inventory = req.body;
+      let { quantity, sold, ...rest } = inventory;
+
+      const restockQuant = req.query.restockQuantity;
+      const newQuantity = parseInt(quantity) + parseInt(restockQuant);
+      quantity = newQuantity;
+
+      const updatedInventory = { quantity, sold, ...rest };
+      const query = { _id: ObjectId(inventory._id) };
+      const updateDoc = {
+        $set: {
+          quantity: newQuantity,
+        },
+      };
+      const options = { upsert: true };
       const result = await inventoryCollection.updateOne(
         query,
         updateDoc,
