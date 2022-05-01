@@ -37,10 +37,18 @@ async function run() {
     // Getting inventories
     app.get("/inventory", async (req, res) => {
       const limit = parseInt(req?.query?.limit);
+      const email = req?.query?.email;
+
       const query = {};
       const cursor = inventoryCollection.find(query);
+
       if (limit) {
         const inventories = await cursor.limit(limit).toArray();
+        res.send(inventories);
+      } else if (email) {
+        const query = { email: email };
+        const cursor = inventoryCollection.find(query);
+        const inventories = await cursor.toArray();
         res.send(inventories);
       } else {
         const inventories = await cursor.toArray();
