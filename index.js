@@ -56,6 +56,13 @@ async function run() {
       res.send(inventory);
     });
 
+    // Add Inventory
+    app.post("/addInventory", async (req, res) => {
+      const inventory = req.body;
+      const result = await inventoryCollection.insertOne(inventory);
+      res.send(result);
+    });
+
     // Update SOLD AND QUANTITY RESTOCK:
     app.post("/updateQuantity", async (req, res) => {
       const inventory = req.body;
@@ -107,8 +114,8 @@ async function run() {
         updateDoc,
         options
       );
-      //localhost:5000/inventory
-      http: res.send([result, updatedInventory]);
+
+      res.send([result, updatedInventory]);
     });
 
     // Delete inventory
