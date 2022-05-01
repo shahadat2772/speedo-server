@@ -36,10 +36,16 @@ async function run() {
 
     // Getting inventories
     app.get("/inventory", async (req, res) => {
+      const limit = parseInt(req?.query?.limit);
       const query = {};
       const cursor = inventoryCollection.find(query);
-      const inventories = await cursor.toArray();
-      res.send(inventories);
+      if (limit) {
+        const inventories = await cursor.limit(limit).toArray();
+        res.send(inventories);
+      } else {
+        const inventories = await cursor.toArray();
+        res.send(inventories);
+      }
     });
 
     // Get Single Inventory using ID
@@ -101,8 +107,16 @@ async function run() {
         updateDoc,
         options
       );
+      //localhost:5000/inventory
+      http: res.send([result, updatedInventory]);
+    });
 
-      res.send([result, updatedInventory]);
+    // Delete inventory
+    app.delete("/deleteInventory", async (req, res) => {
+      const id = req?.query?.id;
+      const query = { _id: ObjectId(id) };
+      const result = await inventoryCollection.deleteOne(query);
+      res.send(result);
     });
   } finally {
     // await client.close()
