@@ -56,6 +56,14 @@ async function run() {
       }
     });
 
+    // Get last inserted four inventories
+    app.get("/lastInventories", async (req, res) => {
+      const query = {};
+      const cursor = inventoryCollection.find(query).sort({ _id: -1 }).limit(4);
+      const inventories = await cursor.toArray();
+      res.send(inventories);
+    });
+
     // Get Single Inventory using ID
     app.get("/inventory/:id", async (req, res) => {
       const id = req.params.id;
