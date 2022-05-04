@@ -7,8 +7,8 @@ const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 var jwt = require("jsonwebtoken");
 
 // MiddleWere
-app.use(express.json());
 app.use(cors());
+app.use(express.json());
 
 // Connecting DB
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.d7c9x.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
@@ -24,14 +24,14 @@ async function run() {
     // Collection
     const inventoryCollection = client.db("speedo").collection("inventory");
 
-    // // Getting Access Token
-    // app.post("/getToken", (req, res) => {
-    //   const email = req.body;
-    //   const accessToken = jwt.sign(email, process.env.ACCESS_TOKEN_SECRET, {
-    //     expiresIn: "1d",
-    //   });
-    //   res.send(accessToken);
-    // });
+    // AUTH (GETTING TOKEN FOR USER)
+    app.post("/token", (req, res) => {
+      const user = req.body;
+      const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+        expiresIn: "1d",
+      });
+      res.send(accessToken);
+    });
 
     // Getting inventories
     app.get("/inventory", async (req, res) => {
