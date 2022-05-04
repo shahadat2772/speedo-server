@@ -5,10 +5,31 @@ const app = express();
 const port = process.env.PORT || 5000;
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 var jwt = require("jsonwebtoken");
+const verify = require("jsonwebtoken/verify");
 
 // MiddleWere
 app.use(cors());
 app.use(express.json());
+
+// Verifying the TOKEN
+const JWTVerification = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return res.status(401).send({ message: "unauthorized access." });
+  }
+  // token
+  const token = authHeader.split(" ")[1];
+
+  // verifying the token
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (error, decoded) => {
+    if (error) {
+      return res.status(403).send({ message: "Forbidden Access" });
+    } else {
+      req.decoded = decoded;
+      next();
+    }
+  });
+};
 
 // Connecting DB
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.d7c9x.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
@@ -26,8 +47,8 @@ async function run() {
 
     // AUTH (GETTING TOKEN FOR USER)
     app.post("/token", (req, res) => {
-      const user = req.body;
-      const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+      const email = req.body;
+      const accessToken = jwt.sign(email, process.env.ACCESS_TOKEN_SECRET, {
         expiresIn: "1d",
       });
       res.send(accessToken);
@@ -36,22 +57,33 @@ async function run() {
     // Getting inventories
     app.get("/inventory", async (req, res) => {
       const limit = parseInt(req?.query?.limit);
-      const email = req?.query?.email;
 
       const query = {};
       const cursor = inventoryCollection.find(query);
 
+      // Getting 6 items form collection
       if (limit) {
         const inventories = await cursor.limit(limit).toArray();
         res.send(inventories);
-      } else if (email) {
+      }
+      // Getting all the inventories
+      else {
+        const inventories = await cursor.toArray();
+        res.send(inventories);
+      }
+    });
+
+    // Getting my inventories
+    app.get("/myInventories", JWTVerification, async (req, res) => {
+      const email = req.query.email;
+      const decodedEmail = req.decoded.email;
+      if (email === decodedEmail) {
         const query = { email: email };
         const cursor = inventoryCollection.find(query);
         const inventories = await cursor.toArray();
         res.send(inventories);
       } else {
-        const inventories = await cursor.toArray();
-        res.send(inventories);
+        return res.status(403).send({ message: "forbidden access" });
       }
     });
 
