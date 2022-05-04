@@ -61,16 +61,19 @@ async function run() {
       const query = {};
       const cursor = inventoryCollection.find(query);
 
-      // Getting 6 items form collection
-      if (limit) {
-        const inventories = await cursor.limit(limit).toArray();
-        res.send(inventories);
-      }
       // Getting all the inventories
-      else {
-        const inventories = await cursor.toArray();
-        res.send(inventories);
-      }
+
+      const inventories = await cursor.toArray();
+      res.send(inventories);
+    });
+
+    // Getting first six items
+    app.get("/getFirstSixInventory", async (req, res) => {
+      const query = {};
+      const cursor = inventoryCollection.find(query);
+      // Getting 6 items form collection
+      const inventories = await cursor.limit(6).toArray();
+      res.send(inventories);
     });
 
     // Getting my inventories
